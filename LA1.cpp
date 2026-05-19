@@ -1,3 +1,5 @@
+// g++ -fopenmp bfs.cpp -o a; ./a
+
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -53,10 +55,15 @@ public:
         while (!frontier.empty()) {
             vector<int> next;
 
+            // OpenMP parallel region: Spawns a team of threads to execute the block concurrently.
+            // Each thread will maintain its own thread-local 'local' vector on its private stack.
             #pragma omp parallel
             {
                 vector<int> local;
 
+                // OpenMP loop parallelization: Dynamically distributes loop iterations among active threads.
+                // schedule(dynamic) dynamically chunks work (default chunk size 1), which is ideal for graph
+                // traversals since node degrees (and thus processing workloads) vary significantly.
                 #pragma omp for schedule(dynamic)
 
                 for (int i = 0; i < frontier.size(); i++) {
@@ -69,6 +76,9 @@ public:
 
                             bool added = false;
 
+                            // OpenMP critical section: Enforces mutual exclusion so only one thread executes this block at a time.
+                            // Thread-safely performs a double-checked visited status check before setting visited[n] = 1
+                            // to prevent multiple threads from concurrently discovering and processing the same node.
                             #pragma omp critical
                             {
                                 if (!visited[n]) {
@@ -88,6 +98,8 @@ public:
                 }
 
 
+                // OpenMP critical section: Serializes concurrent writes to the shared 'next' frontier vector.
+                // Ensures each thread safe-merges its thread-local discoveries into the global frontier buffer.
                 #pragma omp critical
                 next.insert(next.end(), local.begin(), local.end());
 
@@ -97,18 +109,13 @@ public:
 
         }
     }
-
-
-
-
 };
 
 // ---------------- MAIN ----------------
 int main() {
-
     ofstream file("la1.txt");
 
-    file << "N,BFS_SEQ,BFS_PAR,BFS_SPEEDUP,BFS_EFF,BFS_COST\n";
+    file << "N,SEQ,PAR,SPEEDUP,EFF,COST\n";
 
     //  FORCE THREADS
     int cores = 4;
@@ -157,11 +164,16 @@ int main() {
 
         // ================= FILE =================
         file << N << ","
-             << bfs_seq << "," << bfs_par << "," << bfs_speed << "," << bfs_eff << "," << bfs_cost << "\n";
+             << bfs_seq << "," 
+             << bfs_par << "," 
+             << bfs_speed << "," 
+             << bfs_eff << "," 
+             << bfs_cost << "\n";
 
 
 
     }
+
 
     file.close();
     cout << "\nSaved to la1.txt\n";

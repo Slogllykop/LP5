@@ -8,9 +8,9 @@ df = pd.read_csv("la1.txt")
 N = df["N"].values
 
 # ================= BFS =================
-bfs_seq = df["BFS_SEQ"].values
-bfs_par = df["BFS_PAR"].values
-bfs_speed = df["BFS_SPEEDUP"].values
+bfs_seq = df["SEQ"].values
+bfs_par = df["PAR"].values
+bfs_speed = df["SPEEDUP"].values
 
 # CORES
 CORES = 4
@@ -56,7 +56,7 @@ plt.tight_layout()
 plt.show()
 
 # ================= COST GRAPH =================
-bfs_cost = df["BFS_COST"].values
+bfs_cost = df["COST"].values
 plt.figure()
 plt.plot(N, bfs_cost, marker='o', label="BFS Cost", color='purple')
 plt.xlabel("Input Size N")
