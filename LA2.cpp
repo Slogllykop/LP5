@@ -2,11 +2,12 @@
 #include <omp.h>
 #include <vector>
 #include <cstdlib>
-#include <cstdio>
+#include <fstream>
 #include <ctime>
 
 using namespace std;
 
+// Preprocessor directive to define a macro constant 'TESTS' representing the number of input size test cases.
 #define TESTS 6
 int N_values[TESTS] = {100, 300, 500, 700, 900, 1000};
 
@@ -37,6 +38,8 @@ void par_bubble(vector<int> &arr, int N) {
         // ================= EVEN PHASE =================
         if (phase % 2 == 0) {
 
+            // OpenMP compiler directive to parallelize the following for-loop.
+            // It instructs the compiler to generate code that distributes the loop iterations across multiple threads.
             #pragma omp parallel for
             for (int i = 0; i < N - 1; i += 2) {
                 if (arr[i] > arr[i + 1]) {
@@ -48,6 +51,8 @@ void par_bubble(vector<int> &arr, int N) {
         // ================= ODD PHASE =================
         else {
 
+            // OpenMP compiler directive to parallelize the following for-loop.
+            // It instructs the compiler to generate code that distributes the loop iterations across multiple threads.
             #pragma omp parallel for
             for (int i = 1; i < N - 1; i += 2) {
                 if (arr[i] > arr[i + 1]) {
@@ -65,10 +70,10 @@ int main() {
     srand(time(NULL));
     int cores = omp_get_max_threads();
 
-    FILE *file = fopen("la2.txt", "w");
+    ofstream file("la2.txt");
 
-    // ✅ Added COST column
-    fprintf(file, "N,SEQ,PAR,SPEEDUP,EFFICIENCY,COST,CORES\n");
+    // Added COST column
+    file << "N,SEQ,PAR,SPEEDUP,EFFICIENCY,COST,CORES\n";
 
     for (int t = 0; t < TESTS; t++) {
 
@@ -98,18 +103,23 @@ int main() {
 
         cost = par * cores;
 
-        cout << "BUBBLE -> "
-             << "Seq=" << seq
+        cout << "BUBBLE ->"
+             << " Seq=" << seq
              << " Par=" << par
              << " Speedup=" << speed
              << " Efficiency=" << eff
              << " Cost=" << cost << endl;
 
-        fprintf(file, "%d,%lf,%lf,%lf,%lf,%lf,%d\n",
-                N, seq, par, speed, eff, cost, cores);
+        file << N << "," 
+             << seq << "," 
+             << par << "," 
+             << speed << "," 
+             << eff << "," 
+             << cost << "," 
+             << cores << "\n";
     }
 
-    fclose(file);
+    file.close();
 
     cout << "\nResults saved to la2.txt\n";
     return 0;
