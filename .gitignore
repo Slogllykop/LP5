@@ -2,3 +2,5 @@ bfs
 bubble
 *.txt
 practice
+fashion-mnist_train.csv
+fashion-mnist_test.csv
